@@ -1,4 +1,8 @@
 #include "systemcalls.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -16,8 +20,9 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
-
-    return true;
+    int systemRetval = system(cmd);
+    // printf("\r\ndo_system(%s) systemRetval: %d\r\n", cmd, systemRetval);
+    return !(systemRetval == -1);
 }
 
 /**
@@ -40,14 +45,17 @@ bool do_exec(int count, ...)
     va_start(args, count);
     char * command[count+1];
     int i;
+    // printf("\r\ndo_exec ARGUMENTS PASSED: |");
     for(i=0; i<count; i++)
     {
         command[i] = va_arg(args, char *);
+        // printf(" [%d]: %s |", i , command[i]);
     }
+    // printf("\r\n\r\n");
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
-    command[count] = command[count];
+    // command[count] = command[count];
 
 /*
  * TODO:
@@ -58,10 +66,68 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    // printf("\r\nPARENT PROCESS PID: %d\r\n", getpid());
+    fflush(stdout);
+    int pid = fork();
+    // printf("\r\n[do_exec] execv(");
+    // for(int iter = 0; iter < count + 1; iter++)
+    // {
+    //     if( !iter ) { printf("%s", command[iter]); }
+    //     else if( command[iter] ) { printf(", %s", command[iter]); }
+    // }
+    // printf("); | CHILD PID: %u\r\n\r\n", pid);
+    bool retval = false;
+    do
+    {
+        if( pid == -1 ) break;
+        if( pid == 0 ) 
+        {
+            // printf("\r\nLets run execv with -> %s\r\n", command[0]);
+            /* int execvRetval = */execv(command[0], command);
+            // printf("\r\ndo_exec(%s, ...) execv returns: %d\r\n", command[0], execvRetval);
+            // if( execvRetval == -1)
+            if( 1 )
+            {
+                // printf("\r\n[CHILD] do_exec(%s, ...) execv FAIL\r\n", command[0]);
+                // break;
+                exit(127);
+            }
+        }
+        else
+        {
+            int cmdStatus = 0;
+            int waitpidRetval = waitpid(pid, &cmdStatus, 0);
+            // printf("\r\n[PARENT] do_exec(%s, ...) waitpid(%d, status = %d, 0) returns: %d\r\n", command[0], pid, cmdStatus, waitpidRetval);
+            if( waitpidRetval == -1 )
+            {
+                // printf("\r\n[PARENT] do_exec(%s, ...) waitpid(%d, status = %d, 0) FAIL\r\n", command[0], pid, cmdStatus);
+                break;
+            }
+            if( !WIFEXITED(cmdStatus) )
+            {
+                // printf("\r\n[PARENT] do_exec(%s, ...) cmdStatus: %d -> FAIL\r\n", command[0], cmdStatus);
+                break;
+            }
+            int wexitstatus = WEXITSTATUS(cmdStatus);
+            // printf("\r\n[PARENT] do_exec(%s, ...) wexitstatus: %d\r\n", command[0], wexitstatus);
+            if( wexitstatus != 0 ) break;
+        }
+
+        retval = true;
+
+    } while(0);
 
     va_end(args);
 
-    return true;
+    // printf("\r\n[do_exec] execv(");
+    // for(int iter = 0; iter < count + 1; iter++)
+    // {
+    //     if( !iter ) { printf("%s", command[iter]); }
+    //     else if( command[iter] ) { printf(", %s", command[iter]); }
+    // }
+    // printf("); | PID: %d, %s returning: %s\r\n\r\n", getpid(), pid == 0 ? "CHILD" : "PARENT", retval == true ? "TRUE" : "FALSE");
+
+    return retval;
 }
 
 /**
@@ -73,17 +139,13 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
 {
     va_list args;
     va_start(args, count);
-    char * command[count+1];
+    char * command[count + 1];
     int i;
     for(i=0; i<count; i++)
     {
         command[i] = va_arg(args, char *);
     }
-    command[count] = NULL;
-    // this line is to avoid a compile warning before your implementation is complete
-    // and may be removed
-    command[count] = command[count];
-
+    command[count] = NULL; 
 
 /*
  * TODO
@@ -93,7 +155,76 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *
 */
 
+    fflush(stdout);
+    int fd = open(outputfile, O_CREAT | O_RDWR | O_TRUNC, 0644);
+    int pid = fork();
+    // printf("\r\n[do_exec_redirect] execv(");
+    // for(int iter = 0; iter < count + 1; iter++)
+    // {
+    //     if( !iter ) { printf("%s", command[iter]); }
+    //     else if( command[iter] ) { printf(", %s", command[iter]); }
+    // }
+    // printf("); | PID: %u\r\n\r\n", pid);
+    bool retval = false;
+    do
+    {
+        if( pid == -1 ) break;
+        if( pid == 0 ) 
+        {
+            if( dup2(fd, 1) == -1 )
+            {
+                // printf("\r\ndup2 FAIL\r\n");
+                break;
+            }
+
+            // printf("\r\n[do_exec_redirect] execv(");
+            // for(int iter = 0; iter < count + 1; iter++)
+            // {
+            //     if( !iter ) { printf("%s", command[iter]); }
+            //     else if( command[iter] ) { printf(", %s", command[iter]); }
+            // }
+            // printf(");\r\n\r\n");
+            // printf("LETS EXECUTE THIS SHIIIIET");
+            /*int execvRetval = */execv(command[0], command);
+            // printf("\r\ndo_exec_redirect(%s, ...) execv returns: %d\r\n", command[0], execvRetval);
+            // if( execvRetval == -1)
+            if( 1 )
+            {
+                // printf("\r\ndo_exec_redirect(%s, ...) execv FAIL\r\n", command[0]);
+                // break;
+                exit(127);
+            }
+        }
+        else
+        {
+            // printf("\r\ndo_exec(...) PARENT PROCESS\r\n");
+            int cmdStatus = 0;
+            int waitpidRetval = waitpid(pid, &cmdStatus, 0);
+            // printf("\r\ndo_exec_redirect(%s, ...) waitpid(%d, status = %d, 0) returns: %d\r\n", command[0], pid, cmdStatus, waitpidRetval);
+            if( waitpidRetval == -1 )
+            {
+                // printf("\r\ndo_exec_redirect(%s, ...) waitpid(%d, status = %d, 0) FAIL\r\n", command[0], pid, cmdStatus);
+                break;
+            }
+            if( !WIFEXITED(cmdStatus) )
+            {
+                // printf("\r\ndo_exec_redirect(%s, ...) cmdStatus: %d -> FAIL\r\n", command[0], cmdStatus);
+                break;
+            }
+            int wexitstatus = WEXITSTATUS(cmdStatus);
+            // printf("\r\ndo_exec_redirect(%s, ...) wexitstatus: %d\r\n", command[0], wexitstatus);
+            if( wexitstatus != 0 ) break;
+        }
+
+        retval = true;
+
+    } while(0);
+
+    if( close(fd) == -1 ) printf("ERROR CLOSING FILE!");
+
     va_end(args);
 
-    return true;
+    // printf("\r\ndo_exec_redirect(%s, ...) returning: %s\r\n", command[0], retval == true ? "TRUE" : "FALSE");
+
+    return retval;
 }
