@@ -2,6 +2,8 @@
 # Tester script for assignment 1 and assignment 2
 # Author: Siddhant Jajoo
 
+echo "STARTING finder-test script for buildroot assignment"
+
 set -e
 set -u
 
@@ -27,12 +29,13 @@ fi
 
 MATCHSTR="The number of files are ${NUMFILES} and the number of matching lines are ${NUMFILES}"
 
-echo "Writing ${NUMFILES} files containing string ${WRITESTR} to ${WRITEDIR}"
+echo "Writing ${NUMFILES} files containing string ${WRITESTR} to ${WRITEDIR} - buildroot"
 
 rm -rf "${WRITEDIR}"
 
 # create $WRITEDIR if not assignment1
 assignment=`cat /etc/finder-app/conf/assignment.txt`
+echo "assignment: ${assignment}"
 
 if [ $assignment != 'assignment1' ]
 then
@@ -51,10 +54,10 @@ fi
 
 for i in $( seq 1 $NUMFILES)
 do
-	./writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
+	writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
-OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
+OUTPUTSTRING=$(finder.sh "$WRITEDIR" "$WRITESTR")
 "$OUTPUTSTRING" >> /tmp/assignment4-result.txt 
 
 # remove temporary directories
