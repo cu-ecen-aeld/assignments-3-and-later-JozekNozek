@@ -57,8 +57,12 @@ do
 	writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
+echo "Writer done!"
+
 touch /tmp/assignment4-result.txt
-$(finder.sh "$WRITEDIR" "$WRITESTR") > /tmp/assignment4-result.txt
+# $(finder.sh "$WRITEDIR" "$WRITESTR") > /tmp/assignment4-result.txt
+OUTPUTSTRING=$(finder.sh "$WRITEDIR" "$WRITESTR")
+
 
 # remove temporary directories
 rm -rf /tmp/aeld-data
