@@ -2,7 +2,7 @@
 # Tester script for assignment 1 and assignment 2
 # Author: Siddhant Jajoo
 
-echo "STARTING finder-test script for buildroot assignment"
+echo "STARTING finder-test script for buildroot assignment v2"
 
 set -e
 set -u
@@ -57,8 +57,8 @@ do
 	writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
-OUTPUTSTRING=$(finder.sh "$WRITEDIR" "$WRITESTR")
-"$OUTPUTSTRING" >> /tmp/assignment4-result.txt 
+touch /tmp/assignment4-result.txt
+$(finder.sh "$WRITEDIR" "$WRITESTR") > /tmp/assignment4-result.txt
 
 # remove temporary directories
 rm -rf /tmp/aeld-data
