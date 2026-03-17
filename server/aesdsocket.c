@@ -65,6 +65,7 @@ static char* read_file_bytes(const char* filename, size_t* size_out)
 
 int main(int argc, char *argv[])
 {
+    int currPID = 0;
     printf("\r\n\r\nLets run assignment 5\r\n\r\n");
 
     bool daemon_mode = false;
@@ -137,36 +138,23 @@ int main(int argc, char *argv[])
         if( daemon_mode )
         {
             int pid = fork();
+            currPID = pid;
             if( pid == -1 )
             {
                 printf("[ERROR%d (%s)] fork fail\r\n", errno, strerror(errno));
                 break;
             }
 
-            if( pid != 0 )
-            {
-                // int cmdStatus = 0;
-                // int waitpidRetval = waitpid(pid, &cmdStatus, 0);
-                // if( waitpidRetval == -1 )
-                // {
-                //     retval = -1;
-                //     break;
-                // }
-                // if( !WIFEXITED(cmdStatus) )
-                // {
-                //     retval = -1;
-                //     break;
-                // }
-                // int wexitstatus = WEXITSTATUS(cmdStatus);
-                // if( wexitstatus != 0 )
-                // {
-                //     retval = -1;
-                //     break;
-                // }
-                exit(0);
-            }
-
-            
+            if( pid != 0 ) { exit(0); }
+            // else 
+            // {
+            //     setsid();
+            //     chdir("/");
+            //     umask(0);
+            //     close(STDIN_FILENO);
+            //     close(STDOUT_FILENO);
+            //     close(STDERR_FILENO);
+            // }
         }
         
 
@@ -280,6 +268,8 @@ int main(int argc, char *argv[])
     freeaddrinfo(sockaddrinfo);
     close(socketfd);
     closelog();
+
+    printf("\r\n\r\n%s process finished, returning: %d\r\n\r\n", currPID == 0 ? "CHILD" : "PARENT", retval);
 
     return retval;
 }
