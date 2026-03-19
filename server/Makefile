@@ -1,6 +1,3 @@
-# Can run with "make CROSS_COMPILE=aarch64-none-linux-gnu-"
-
-CC = gcc
 CFLAGS = -g -Wall -Werror
 TARGET = aesdsocket
 SOURCES = aesdsocket.c
@@ -16,6 +13,8 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET)
+
+aesdsocket.o: aesdsocket.h
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
