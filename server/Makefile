@@ -1,12 +1,12 @@
-CFLAGS = -g -Wall -Werror
-TARGET = aesdsocket
-SOURCES = aesdsocket.c
+CFLAGS ?= -g -Wall -Werror
+TARGET ?= aesdsocket
+SOURCES ?= aesdsocket.c
 OBJECTS = $(SOURCES:.c=.o)
 
 ifeq ($(CROSS_COMPILE),)
-    CC = gcc
+    CC ?= gcc
 else
-    CC = $(CROSS_COMPILE)gcc
+    CC ?= $(CROSS_COMPILE)gcc
 endif
 
 all: $(TARGET)
