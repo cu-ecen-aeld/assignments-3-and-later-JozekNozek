@@ -12,7 +12,7 @@ endif
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET)
+	$(CC) $(LDFLAGS) $(CFLAGS) $(OBJECTS) -o $(TARGET)
 
 aesdsocket.o: aesdsocket.h
 
